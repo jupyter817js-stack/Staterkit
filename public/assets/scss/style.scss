@@ -1,0 +1,181 @@
+/*------------------------------------------------------------------
+[Master Stylesheet]
+Project                        :    Betsurezone - Quant-grade Surebet & Valuebet Intelligence
+
+Created Date                   :   12/03/2024
+
+Updated Date                   :   04/03/2025
+
+Author & Copyright Ownership   :   Betsurezone
+
+Author URL                     :   https://betsurezone.com
+
+Support                        :   https://betsurezone.com
+
+License Details                :   All rights reserved.
+
+-------------------------------------------------------------------*/
+/*------------------- Start Table of Content 
+
+FontFamily
+Tailwind
+Variables
+Icons
+Dashboard-1
+Dashboard-2
+Dashboard-3
+Dashboard-4
+Dashboard-5
+Dashboard-6
+Dashboard-7
+Dashboard-8
+Dashboard-9
+Dashboard-11
+Custom
+Button
+Box
+Alert
+Avatar
+Badge
+List-Group
+Progress
+Spinner
+Toast
+Form
+Dropzone
+Filepond
+Color Picker
+Dropdown
+Modal
+Offcanvas
+Tooltip
+Table
+Chart
+Pagination
+Flat-pickr
+Choices
+Tom-select
+Quil Editor
+Rangeslider
+Map
+Swiper Carousel
+Sweetalert
+TreeView
+Datatable
+Calendar
+Gallery
+Header
+Vertical
+Responsive
+Horizontal
+Menu-Click
+Menu-Hover
+Icon-Click
+Icon-Hover
+switcher
+Mail
+Chat
+Ecommerce
+Invoice
+Team
+Profile
+About
+Timeline
+Todo
+Landing
+Authentication
+Widgets
+blog
+notifications
+Classic-Page Styles
+Boxed
+Menu-Scrollable
+Header-Scrollable
+Closed-Menu
+Icon-Overlay
+IconText-Menu 
+Detached-Menu
+Double-Menu
+Menu Styles
+Header Styles 
+Background Image
+
+-------------------*/
+
+@forward "./variables";
+@forward "./icons";
+
+@forward "./custom/header";
+@forward "./custom/logo";
+@forward "./custom/dashboard_styles";
+@forward "./custom/landing";
+@forward "./custom/job_landing.scss";
+@forward "./custom/authentication";
+@forward "./custom/error";
+
+@forward "./pages/pages_styles";
+@forward "./pages/chat";
+@forward "./pages/task";
+
+@forward "./layout/vertical";
+@forward "./layout/closed_menu";
+@forward "./layout/double_menu";
+@forward "./layout/horizontal";
+@forward "./layout/icon_click";
+@forward "./layout/icon_hover";
+@forward "./layout/menu_click";
+@forward "./layout/menu_hover";
+
+@forward "./switcher/bg-img-styles";
+@forward "./switcher/boxed";
+@forward "./switcher/classic-page-style";
+@forward "./switcher/closed_menu";
+@forward "./switcher/detached_menu";
+@forward "./switcher/double_menu";
+@forward "./switcher/header-scrollable";
+@forward "./switcher/header-styles";
+@forward "./switcher/icon-overlay";
+@forward "./switcher/icontext";
+@forward "./switcher/menu-scrollable";
+@forward "./switcher/menu-styles";
+@forward "./switcher/loader";
+
+@forward "./plugins/datatable";
+@forward "./plugins/calendar";
+@forward "./plugins/plugins.scss";
+
+@forward "./tailwind/buttons";
+@forward "./tailwind/forms";
+@forward "./tailwind/components";
+@forward "./tailwind/custom";
+@forward "./tailwind/dropdown";
+@forward "./tailwind/progress";
+@forward "./tailwind/modal";
+@forward "./tailwind/toast.scss";
+@forward "./tailwind/alerts";
+@forward "./tailwind/breadcrumb";
+@forward "./tailwind/avatars.scss";
+@forward "./tailwind/accordion";
+@forward "./tailwind/carousels.scss";
+@forward "./tailwind/cards";
+@forward "./tailwind/offcanvas";
+@forward "./tailwind/pagination";
+@forward "./tailwind/tables";
+@forward "./tailwind/tooltip";
+@forward "./tailwind/progress";
+
+
+//    {***** Global******}
+
+@forward "./global/select2";
+@forward "./global/date-picker";
+@forward "./global/custom-styles";
+@forward "./global/react-datepicker";
+
+
+/* Start FontFamily Styles */
+/* inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Montserrat */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&display=swap');

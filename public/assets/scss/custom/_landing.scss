@@ -1,0 +1,1027 @@
+/* Start Landing Styles */
+.landing-body .landing-main-image img {
+  @apply z-[11] relative w-[26.063rem] h-[26.063rem] bg-black/[0.05] rounded-full before:absolute before:w-[24.5rem] before:h-[24.5rem] before:bg-black/10 before:opacity-[0.3] before:start-[5rem] before:top-[0rem] before:rounded-full
+  after:absolute after:w-[12.5rem] after:h-[12.5rem] after:bg-transparent after:border-primary/50 after:opacity-[0.3] after:start-[5.1rem] after:bottom-[4.4rem];
+}
+
+/* 랜딩 히어로 배너 — 얇은 그라데이션 3D 테 + 네 모서리 월계 장식 */
+.landing-body .landing-banner .landing-hero-slider {
+  padding: 4px;
+  border-radius: 10px;
+  position: relative;
+  transform: translateZ(0);
+  will-change: transform;
+  background: linear-gradient(155deg, #d4af37 0%, #c9a227 25%, #a67c00 60%, #7a5c08 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 235, 180, 0.6),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    0 0 16px -4px rgba(201, 162, 39, 0.2);
+}
+.landing-body .landing-banner .landing-hero-swiper.landing-hero-swiper-3d {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+.landing-body .landing-banner .landing-frame-corner {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  width: 36px;
+  height: 36px;
+  opacity: 0.95;
+  filter: drop-shadow(1px 1px 0 rgba(255, 235, 180, 0.4)) drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.35));
+}
+.landing-body .landing-banner .landing-frame-corner .landing-corner-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.landing-body .landing-banner .landing-frame-corner-tl { top: 0; left: 0; }
+.landing-body .landing-banner .landing-frame-corner-tr { top: 0; right: 0; }
+.landing-body .landing-banner .landing-frame-corner-bl { bottom: 0; left: 0; }
+.landing-body .landing-banner .landing-frame-corner-br { bottom: 0; right: 0; }
+
+[data-nav-layout="horizontal"] {
+  @media (min-width: 992px) {
+    &[class="dark"] {
+      .landing-body {
+        .app-sidebar .slide.has-sub.open .slide-menu.child1::before {
+          @apply bg-bodybg #{!important};
+        }
+        .app-sidebar.sticky.sticky-pin {
+          .landing-logo-container {
+            .responsive-logo-dark img {
+              @apply block;
+            }
+            .responsive-logo-light img {
+              @apply hidden;
+            }
+          }
+        }
+      }
+      .landing-body {
+        .app-sidebar.sticky {
+          @apply bg-primary/10 #{!important};
+        }
+        .app-sidebar.sticky.sticky-pin {
+          @apply bg-bodybg shadow-[0_0.25rem_1rem_rgba(255,255,255,0.1)] #{!important};
+        }
+      }
+    }
+    &[class="light"] {
+      .landing-body {
+        .app-sidebar.sticky.sticky-pin {
+          @apply shadow-[0_0.25rem_1rem_rgba(0,0,0,0.1)] #{!important};
+        }
+        .app-sidebar.sticky.sticky-pin {
+          .responsive-logo-dark img {
+            @apply hidden #{!important};
+          }
+          .responsive-logo-light img {
+            @apply block #{!important};
+          }
+        }
+      }
+    }
+    .landing-body {
+      .app-sidebar {
+        @apply bg-primary/10 dark:bg-primary/10 py-4;
+        .side-menu__item .side-menu__angle {
+          @apply text-white dark:text-defaulttextcolor/10 #{!important};
+        }
+        .slide.has-sub.open {
+          .slide-menu {
+            &.child1,
+            &.child2,
+            &.child3 {
+              @apply bg-white dark:bg-bodybg;
+              .slide .side-menu__item {
+                .side-menu__angle {
+                  @apply text-[#536485] dark:text-defaulttextcolor/10 #{!important};
+                }
+                &:hover,
+                &.active {
+                  @apply text-primary #{!important};
+                  .side-menu__angle {
+                    @apply text-primary #{!important};
+                  }
+                  &::before {
+                    @apply border-primary #{!important};
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .side-menu__item {
+          @apply rounded-sm p-[0.3rem];
+        }
+
+        .slide-menu.child1 {
+          @apply rounded-sm py-[0.55rem] px-[0.3rem];
+          .side-menu__item {
+            @apply px-[1.6rem] py-2 #{!important};
+          }
+        }
+
+        .slide.has-sub.open .slide-menu.child1 {
+          @apply overflow-visible text-defaulttextcolor dark:text-defaulttextcolor/70 start-auto hover:text-primary active:text-primary before:absolute before:-top-[7px] before:start-[10%] before:w-[13px] before:h-[13px] before:z-[99999] before:border
+          before:border-solid before:border-transparent before:rotate-45 before:bg-white #{!important};
+        }
+        .slide.has-sub .slide-menu {
+          @apply start-auto #{!important};
+        }
+        .side-menu__item {
+          @apply pe-[1.3rem] ps-[1.3rem] text-[#536485];
+        }
+
+        .side-menu__item.active,
+        .side-menu__item:hover {
+          @apply bg-transparent text-primary #{!important};
+          .side-menu__label,
+          .side-menu__angle {
+            @apply text-white opacity-100 #{!important};
+          }
+        }
+
+        .slide-menu.child1 .slide .side-menu__item:before {
+          @apply top-[1.2rem] start-[0.65rem] #{!important};
+        }
+
+        .landing-logo-container {
+          .responsive-logo-dark img {
+            @apply block;
+          }
+          .responsive-logo-light img {
+            @apply hidden;
+          }
+        }
+      }
+      .app-sidebar.sticky.sticky-pin {
+        .side-menu__label {
+          @apply text-defaulttextcolor dark:text-white #{!important};
+        }
+        .side-menu__angle {
+          @apply text-defaulttextcolor dark:text-white #{!important};
+        }
+        .side-menu__item {
+          &.active,
+          &:hover {
+            @apply text-primary #{!important};
+
+            .side-menu__label,
+            .side-menu__angle {
+              @apply text-primary #{!important};
+            }
+          }
+        }
+        .landing-logo-container {
+          .responsive-logo-dark img {
+            @apply hidden;
+          }
+          .responsive-logo-light img {
+            @apply block;
+          }
+        }
+      }
+    }
+
+    .landing-body .app-sidebar .sticky {
+      @apply top-0  px-0 h-auto bg-primary/10 dark:bg-primary/10 shadow-none border-e-0 #{!important};
+    }
+    .landing-body .app-sidebar .main-sidebar {
+      @apply h-auto #{!important};
+    }
+    .landing-body .app-sidebar.sticky.sticky-pin {
+      @apply bg-white dark:bg-bodybg;
+    }
+  }
+
+  .landing-body {
+    .app-sidebar {
+      .slide .side-menu__item {
+        @apply py-[0.8rem] px-4 #{!important};
+
+        &.active,
+        &:hover {
+          @apply text-white dark:text-defaulttextcolor/10;
+        }
+      }
+    }
+    .app-sidebar .sticky.sticky-pin .side-menu__item.active {
+      @apply font-normal;
+
+      .side-menu__label {
+        @apply text-defaulttextcolor #{!important};
+      }
+    }
+    .accordion.accordion-primary .accordion-button.collapsed:after {
+      @apply bg-white dark:bg-bodybg text-primary #{!important};
+    }
+    /* 랜딩 헤더·사이드바: 부드러운 다크 톤(홈과 조화) + 글자 항상 보이게 */
+    .landing-body .app-header,
+    .landing-body .app-header .main-header-container {
+      background: #1e293b !important;
+    }
+    .landing-body .app-sidebar,
+    .landing-body .app-sidebar .main-sidebar,
+    .landing-body .app-sidebar .main-menu-container {
+      background: #1e293b !important;
+    }
+    .landing-body .app-sidebar.sticky.sticky-pin {
+      background: #1e293b !important;
+    }
+    /* 초기 로드부터 헤더/사이드바 글자·로고 흰색으로 표시 */
+    .landing-body .app-sidebar .side-menu__item .side-menu__label,
+    .landing-body .app-sidebar .side-menu__item .side-menu__angle {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .landing-body .app-sidebar .side-menu__item:hover .side-menu__label,
+    .landing-body .app-sidebar .side-menu__item:hover .side-menu__angle,
+    .landing-body .app-sidebar .side-menu__item.active .side-menu__label,
+    .landing-body .app-sidebar .side-menu__item.active .side-menu__angle {
+      color: #fff !important;
+    }
+    .landing-body .app-sidebar .landing-logo-container .responsive-logo-dark img {
+      display: none !important;
+    }
+    .landing-body .app-sidebar .landing-logo-container .responsive-logo-light img {
+      display: block !important;
+    }
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__label,
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__angle {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__item.active .side-menu__label,
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__item.active .side-menu__angle,
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__item:hover .side-menu__label,
+    .landing-body .app-sidebar.sticky.sticky-pin .side-menu__item:hover .side-menu__angle {
+      color: #fff !important;
+    }
+    .landing-body .app-header .header-link,
+    .landing-body .app-header .ti-btn {
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+    .landing-body .app-header .horizontal-logo img.toggle-logo {
+      opacity: 0;
+    }
+    .landing-body .app-header .horizontal-logo img.toggle-dark {
+      opacity: 1;
+    }
+    /* 랜딩 본문: 홈 톤 기준 섹션별 구분 배경 (밝은 블루그레이 계열) */
+    .landing-body .main-content.landing-main {
+      background: #f5f8fc !important;
+    }
+    /* 섹션별 배경 — Home(#1a2742~#2a4d75) 대비 밝은 톤으로 구분 */
+    /* How it works, About, Pricing — Home(#1a2742~#2a4d75)와 조화되는 밝은 슬레이트 블루 */
+    .landing-body .landing-section-how {
+      background: linear-gradient(to bottom, #eef2f8 0%, #e2e8f2 100%) !important;
+    }
+    .landing-body .landing-section-features {
+      background: #e8eef5 !important;
+    }
+    .landing-body .landing-section-promo {
+      background: #fafbfd !important;
+    }
+    .landing-body .landing-section-about {
+      background: #e4eaf2 !important;
+    }
+    .landing-body .landing-section-testimonials {
+      background: #e2e8f1 !important;
+    }
+    .landing-body .landing-section-team {
+      background: #e8eef5 !important;
+    }
+    .landing-body .landing-section-pricing {
+      background: #e8eef6 !important;
+    }
+    /* Pricing 카드 — Home 톤에 맞춘 밝은 배경 */
+    .landing-body .landing-section-pricing .landing-pricing-box,
+    .landing-body .landing-section-pricing .box.overflow-hidden.shadow-none {
+      background: #f2f6fc !important;
+      border-color: rgba(26, 39, 66, 0.12) !important;
+    }
+    .landing-body .landing-section-pricing .box .grid > div {
+      background: rgba(255, 255, 255, 0.7) !important;
+      border-color: rgba(26, 39, 66, 0.1) !important;
+    }
+    .landing-body .landing-section-pricing .box .grid > div .p-6 {
+      background: transparent;
+    }
+    .landing-body .landing-section-faq {
+      background: #e5ebf3 !important;
+    }
+    .landing-body .landing-section-contact {
+      background: #eef2f7 !important;
+    }
+    .dark .landing-body .main-content.landing-main {
+      background: rgba(15, 23, 42, 0.5) !important;
+    }
+    .dark .landing-body .landing-section-how {
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.5) 100%) !important;
+    }
+    .dark .landing-body .landing-section-features,
+    .dark .landing-body .landing-section-team {
+      background: rgba(30, 41, 59, 0.55) !important;
+    }
+    .dark .landing-body .landing-section-promo,
+    .dark .landing-body .landing-section-pricing {
+      background: rgba(26, 39, 66, 0.5) !important;
+    }
+    .dark .landing-body .landing-section-about,
+    .dark .landing-body .landing-section-contact {
+      background: rgba(30, 41, 59, 0.5) !important;
+    }
+    .dark .landing-body .landing-section-testimonials,
+    .dark .landing-body .landing-section-faq {
+      background: rgba(35, 48, 70, 0.55) !important;
+    }
+    .dark .landing-body .landing-section-pricing .landing-pricing-box {
+      background: rgba(30, 41, 59, 0.6) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    .dark .landing-body .landing-section-pricing .box .grid > div {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    /* 광고/프로모 배너 — 액자 부각: 두꺼운 테두리 + 마트 */
+    .landing-promo-frame {
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(160deg, #c5cddc 0%, #b8c1d2 50%, #aab5c8 100%);
+      border: 10px solid #8a95a8;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+        0 0 0 1px rgba(0, 0, 0, 0.15),
+        0 16px 40px -12px rgba(0, 0, 0, 0.25),
+        0 6px 16px -6px rgba(0, 0, 0, 0.15);
+    }
+    .landing-promo-frame .landing-promo-inner {
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .dark .landing-promo-frame {
+      background: linear-gradient(160deg, #2a3548 0%, #1e293b 50%, #1a2332 100%);
+      border: 10px solid #475569;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(0, 0, 0, 0.3),
+        0 16px 40px -12px rgba(0, 0, 0, 0.4);
+    }
+    /* 홈 히어로: 깔끔·세련된 슬레이트 블루 그라데이션 */
+    .landing-banner {
+      @apply relative w-full min-h-0 top-0 overflow-visible bg-cover bg-center bg-no-repeat;
+      background-image: linear-gradient(165deg, #1e2a42 0%, #243550 30%, #264a6e 65%, #1e3a5a 100%) !important;
+      background-color: #1e2a42 !important;
+      height: auto !important;
+      /* 배경 깊이 — 부드러운 빛점 */
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 90% 60% at 75% 35%, rgba(59, 130, 246, 0.08), transparent 55%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      /* 데스크톱: 우측 밝기 그라데이션 — 이미지와 조화 */
+      @media (min-width: 992px) {
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 50%;
+          max-width: 480px;
+          height: 100%;
+          background: linear-gradient(to left, rgba(255, 255, 255, 0.06), transparent);
+          pointer-events: none;
+          z-index: 0;
+        }
+      }
+
+      .main-banner-container {
+        padding: 1rem 1.5rem;
+        position: relative;
+        z-index: 1;
+        @media (min-width: 768px) {
+          padding: 1.25rem 2rem;
+        }
+        @media (min-width: 992px) {
+          padding: 1.5rem 2.5rem;
+        }
+        @media (min-width: 1200px) {
+          padding: 1.75rem 3rem;
+        }
+      }
+
+      .section,
+      .landing-hero-section {
+        padding-top: 0.5rem;
+        padding-bottom: 0.75rem;
+        padding-left: 0;
+        padding-right: 0;
+        overflow: visible;
+        @media (min-width: 992px) {
+          padding-bottom: 1rem;
+        }
+      }
+    }
+    /* 히어로 오른쪽 SVG 카드 — 그림자로 존재감 */
+    .landing-hero-svg {
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.12)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+      @media (min-width: 992px) {
+        filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.15)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+      }
+    }
+    /* 히어로 슬라이더 — 얇은 그라데이션 3D 테 */
+    .landing-hero-slider {
+      padding: 4px;
+      border-radius: 10px;
+      position: relative;
+      transform: translateZ(0);
+      will-change: transform;
+      background: linear-gradient(155deg, #d4af37 0%, #c9a227 25%, #a67c00 60%, #7a5c08 100%);
+      box-shadow:
+        inset 1px 1px 0 rgba(255, 235, 180, 0.6),
+        inset -1px -1px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        0 0 16px -4px rgba(201, 162, 39, 0.2);
+
+      .landing-hero-swiper,
+      .landing-hero-swiper-3d {
+        .swiper-wrapper { border-radius: inherit; }
+      }
+      .landing-hero-swiper,
+      .landing-hero-swiper-3d {
+        .swiper-slide {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+        }
+      }
+      .landing-hero-swiper-3d {
+        /* 내부 스와이퍼: 살짝 들어간 패널 느낌 — 3D 깊이 */
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+          0 8px 16px -4px rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.25);
+      }
+      .landing-hero-slide-inner {
+        width: 100%;
+        height: 100%;
+      }
+      .landing-hero-slide-img {
+        filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.2)) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+        transition: filter 0.3s ease;
+      }
+      .swiper-pagination {
+        bottom: 0.75rem !important;
+      }
+      .swiper-pagination-bullet {
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 1;
+        width: 8px;
+        height: 8px;
+        transition: transform 0.2s, background 0.2s;
+      }
+      .swiper-pagination-bullet-active {
+        background: #fff;
+        transform: scale(1.25);
+      }
+      .swiper-pagination-bullets-dynamic .swiper-pagination-bullet {
+        transform: scale(0.8);
+      }
+      .swiper-pagination-bullets-dynamic .swiper-pagination-bullet-active-main {
+        transform: scale(1.25);
+      }
+      /* 슬라이드 자동 진행 흐름 띠 — 눈에 잘 띄게 */
+      .landing-hero-progress-bar {
+        width: 0 !important;
+        min-width: 0;
+        animation: landing-hero-progress-fill linear forwards;
+        transform-origin: left;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+      }
+    }
+  @keyframes landing-hero-progress-fill {
+    0% {
+      width: 0% !important;
+    }
+    100% {
+      width: 100% !important;
+    }
+  }
+    /* 히어로 배너 — 깊이감 있는 배경 (메시 그라데이션 + 부드러운 글로우) */
+    .landing-banner {
+      position: relative;
+      overflow: hidden;
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background:
+          radial-gradient(ellipse 100% 80% at 70% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 55%),
+          radial-gradient(ellipse 80% 60% at 20% 90%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+          radial-gradient(ellipse 60% 40% at 90% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 45%);
+      }
+      .main-banner-container,
+      .section.landing-hero-section {
+        position: relative;
+        z-index: 1;
+      }
+    }
+
+    /* 이미지가 완전히 보인 뒤에만 How it works 시작 — Home 높이 축소 */
+    .landing-banner.landing-banner-with-spacing {
+      min-height: 0 !important;
+      height: auto !important;
+      padding-bottom: 2rem;
+      .section.landing-hero-section {
+        padding-bottom: 1rem;
+      }
+      @media (max-width: 991.98px) {
+        padding-bottom: 2rem;
+        .section.landing-hero-section {
+          padding-bottom: 1rem;
+        }
+      }
+    }
+
+      .landing-banner-heading {
+        @apply leading-[1.25] text-[3rem] font-[600] text-white;
+      }
+      .landing-hero-headline {
+        font-size: clamp(1.875rem, 4.8vw, 3.75rem);
+        line-height: 1.12;
+        font-weight: 800;
+        color: #fff;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.12);
+        letter-spacing: -0.03em;
+      }
+      .landing-brand-name {
+        font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.98);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+        text-transform: uppercase;
+        display: inline-block;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.5);
+      }
+      /* 히어로 상단 배지 — 프리미엄 톤 (골드 악센트) */
+      .landing-hero-badge {
+        display: inline-block;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.95);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.08) 100%);
+        padding: 0.4rem 0.9rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(212, 175, 55, 0.35);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+      }
+      /* 히어로 하이라이트 필 — 세련된 캡슐 */
+      .landing-hero-pill {
+        display: inline-block;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.08);
+        padding: 0.45rem 0.95rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+        &:hover {
+          background: rgba(255, 255, 255, 0.14);
+          border-color: rgba(212, 175, 55, 0.4);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+      }
+      /* CTA 버튼 — 배경색·테두리로 버튼임이 분명히 보이게 */
+      .landing-hero-cta-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        &:hover {
+          background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+          transform: translateY(-2px);
+          color: #fff;
+        }
+      }
+      .landing-hero-cta-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1.5px solid rgba(255, 255, 255, 0.5);
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        &:hover {
+          background: rgba(255, 255, 255, 0.22);
+          border-color: rgba(255, 255, 255, 0.7);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          transform: translateY(-2px);
+          color: #fff;
+        }
+      }
+    }
+    .main-menu-container .main-menu {
+      @apply ps-0;
+    }
+    .content {
+      @apply mt-[4rem];
+    }
+    .section {
+      @apply py-[3.375rem] px-0 bg-cover relative;
+    }
+    .featur-icon {
+      @apply w-[75px] h-[75px] p-[14px] rounded-full bg-white/[0.05] my-0 mx-auto;
+    }
+
+    .feature-logos {
+      @apply flex justify-center;
+    }
+
+    .landing-Features {
+      @apply relative w-full h-full top-0 bg-[url('../public/assets/images//media/landing/2.jpg')] bg-cover bg-center bg-no-repeat z-[9]
+        before:absolute before:w-full before:h-full before:top-0 before:-z-[1] before:bg-primary/95;
+    }
+    .landing-testimonials .swiper-pagination-bullet {
+      @apply bg-primary #{!important};
+
+      &:active {
+        @apply bg-primary #{!important};
+      }
+    }
+    .landing-section-heading {
+      @apply relative text-[0.813rem] font-[600] before:absolute before:w-[60%] before:h-[0.25rem] before:bg-gradient-to-r before:from-success before:to-success/10 before:opacity-[0.5] before:-top-[0.625rem] before:rounded-[3.125rem] before:end-0;
+    }
+    .customize-image img {
+      @apply w-[30.5rem] h-[20rem] mt-[20px] p-[15px] relative;
+    }
+    h3 {
+      @apply text-[1.75rem];
+    }
+    .team-card .team-avatar {
+      @apply shadow-[0_0_0_0.5rem_rgba(0,0,0,0.05)] #{!important};
+    }
+    .landing-footer {
+      @apply bg-black border-b border-solid border-white/10 #{!important};
+      .footer-block {
+        @apply min-w-0;
+      }
+    }
+    @media (max-width: 991.98px) {
+      .landing-footer {
+        padding-left: 1rem;
+      }
+    }
+    @media (max-width: 575.98px) {
+      .landing-footer {
+        padding-left: 1.25rem;
+      }
+    }
+    .landing-main-footer {
+      @apply bg-black;
+    }
+    .landing-footer-list li {
+      @apply mb-2;
+    }
+    @media (max-width: 991.98px) {
+      .landing-footer .landing-footer-container,
+      .landing-footer .container-xl {
+        padding-left: 3rem;
+        padding-right: 1.5rem;
+      }
+    }
+    @media (max-width: 575.98px) {
+      .landing-footer .landing-footer-container,
+      .landing-footer .container-xl,
+      .landing-main-footer.landing-footer-container {
+        padding-left: 3.5rem;
+        padding-right: 1.5rem;
+      }
+    }
+    @media (max-width: 991.98px) {
+      .landing-main-footer.landing-footer-container {
+        padding-left: 3rem;
+        padding-right: 1.5rem;
+      }
+    }
+    .brand-img-white {
+      @apply block;
+    }
+    .swiper-pagination-bullet {
+      @apply w-[1.25rem] h-[0.25rem] rounded-md bg-white #{!important};
+    }
+
+    .brand-img-light {
+      @apply block;
+    }
+    @media (min-width: 992px) {
+      .app-sidebar {
+        @apply top-0 px-0 h-auto shadow-none border-0 #{!important};
+        .side-menu__label {
+          @apply text-white dark:text-defaulttextcolor/10 opacity-[0.8];
+        }
+
+        .main-sidebar {
+          @apply h-auto #{!important};
+        }
+
+        .side-menu__item {
+          .side-menu__angle {
+            @apply text-[#536485];
+          }
+          &:hover {
+            .side-menu__angle {
+              @apply text-white dark:text-defaulttextcolor/10;
+            }
+          }
+        }
+        &.app-sidebar .side-menu__label {
+          @apply text-white dark:text-defaulttextcolor/10;
+        }
+
+        .landing-logo-container .horizontal-logo {
+          .desktop-white {
+            @apply hidden;
+          }
+
+          .desktop-logo {
+            @apply block;
+          }
+        }
+        &.app-sidebar .side-menu__item:hover {
+          .side-menu__label {
+            @apply text-white dark:text-defaulttextcolor/10;
+          }
+        }
+      }
+
+      .app-header {
+        @apply hidden;
+      }
+
+      .main-sidebar-header {
+        @apply block #{!important};
+      }
+
+      .main-menu-container {
+        @apply flex items-center justify-between;
+
+        .slide-left,
+        .slide-right {
+          @apply hidden;
+        }
+      }
+
+      .main-content {
+        @apply p-0;
+      }
+
+      .landing-logo-container {
+        .horizontal-logo .header-logo {
+          .desktop-logo {
+            @apply hidden;
+          }
+        }
+      }
+    }
+    iframe {
+      @apply w-full;
+    }
+    @media (max-width: 991.98px) {
+      .app-sidebar .side-menu__item.active,
+      .app-sidebar .side-menu__item:hover {
+        @apply bg-transparent;
+      }
+      .main-menu-container .main-menu {
+        @apply ps-[20px] #{!important};
+      }
+
+      .app-sidebar {
+        .slide {
+          @apply p-0;
+        }
+      }
+
+      .landing-logo-container {
+        .horizontal-logo .header-logo {
+          .desktop-logo {
+            @apply hidden #{!important};
+          }
+
+          .desktop-white {
+            @apply hidden #{!important};
+          }
+        }
+      }
+    }
+    @media (max-width: 1115.98px) {
+      .landing-body .landing-main-image img {
+        @apply bg-transparent before:hidden after:hidden #{!important};
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .landing-banner {
+        .main-banner-container {
+          @apply p-4;
+        }
+      }
+    }
+
+    @media (max-width: 400px) {
+      .landing-body .landing-banner {
+        /* 높이 제한 없음 — 콘텐츠만큼만 확장 */
+      }
+    }
+
+    @media (max-width: 480px) {
+      .landing-banner {
+        .section {
+          @apply py-[2.375rem] px-0;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 420px) {
+    .landing-body .landing-banner {
+      .main-banner-container {
+        @apply p-4;
+      }
+
+      .landing-banner-heading {
+        @apply text-[2rem];
+      }
+    }
+  }
+  @media (max-width: 992px) {
+    .landing-body {
+      .app-sidebar .side-menu__item {
+        @apply py-[0.8rem] pr-[5rem] ps-4;
+      }
+      .app-sidebar .slide-menu.child1 li,
+      .app-sidebar .slide-menu.child2 li,
+      .app-sidebar .slide-menu.child3 li {
+        @apply p-0 ps-0 relative;
+      }
+    }
+  }
+
+  &.dark {
+    @media (min-width: 992px) {
+      .landing-body {
+        .main-menu-container {
+          .landing-logo-container {
+            .horizontal-logo .header-logo {
+              .desktop-logo {
+                @apply hidden #{!important};
+              }
+            }
+          }
+        }
+        .app-sidebar .side-menu__item {
+          @apply text-defaulttextcolor/70;
+        }
+      }
+    }
+    .landing-body {
+      @media (max-width: 991.98px) {
+        .app-header {
+          .main-header-container {
+            .horizontal-logo .header-logo {
+              .toggle-logo {
+                @apply hidden;
+              }
+
+              .toggle-dark {
+                @apply block;
+              }
+            }
+          }
+        }
+      }
+
+      .landing-trusted-companies {
+        img {
+          @apply invert-[1];
+        }
+      }
+      .app-sidebar.sticky-pin {
+        .landing-logo-container .horizontal-logo {
+          .desktop-white {
+            @apply block;
+          }
+        }
+      }
+    }
+
+    .brand-img-light {
+      @apply block;
+    }
+
+    .brand-img-white {
+      @apply hidden;
+    }
+
+    .section-bg {
+      @apply bg-black/10;
+    }
+  }
+  .landing-body {
+    @media (min-width: 992px) {
+      .app-sidebar {
+        .main-menu {
+          @apply pe-6;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 991.98px) {
+    .landing-body {
+      .main-content {
+        @apply pt-[3.75rem] #{!important};
+      }
+    }
+  }
+}
+
+/* 모바일에서도 히어로 오른쪽 이미지(SVG) 표시 — horizontal 레이아웃에서 hidden 오버라이드 */
+@media (max-width: 991.98px) {
+  [data-nav-layout="horizontal"] .landing-main-image,
+  .landing-body .landing-banner .landing-main-image {
+    display: block !important;
+    max-width: 100% !important;
+    min-height: 300px !important;
+  }
+  .landing-body .landing-banner .landing-main-image svg {
+    min-height: 300px;
+    max-height: 420px;
+    width: 100%;
+  }
+}
+
+/* 데스크톱 가로 넘침 방지 */
+.landing-body .landing-main.main-content {
+  overflow-x: hidden;
+}
+
+.landing-body {
+  .pickr-container-primary :last-child button {
+    @apply block;
+  }
+  .pickr-container-background :last-child button {
+    @apply block;
+  }
+}
+@media (max-width: 991.98px) {
+  .landing-body {
+    .app-sidebar .slide-menu {
+      @apply ps-4;
+    }
+    .app-sidebar .slide-menu.child1 .side-menu__item,
+    .app-sidebar .slide-menu.child2 .side-menu__item {
+      @apply py-[0.45rem] px-[1.6rem] #{!important};
+    }
+  }
+}
+/* End Landing Styles */

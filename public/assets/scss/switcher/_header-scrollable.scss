@@ -1,0 +1,27 @@
+/* Start Header-Scrollable Styles */
+[data-header-position="scrollable"] {
+  .app-header {
+    @apply absolute;
+  }
+  &:not([data-menu-position="scrollable"]) {
+    @media screen and (min-width:992px) {
+      .app-sidebar {
+        &.sticky-pin {
+          @apply fixed top-0 #{!important};
+        }
+      }
+    }
+    &[data-toggled="open"] {
+      .app-sidebar {
+        &.sticky-pin {
+          @apply mt-0;
+        }
+      }
+    }
+  }
+  &[data-nav-style="menu-click"][data-nav-layout="vertical"][data-toggled="menu-click-closed"] .app-sidebar {
+    position: fixed !important;
+  }
+}
+
+/* End Header-Scrollable Styles */

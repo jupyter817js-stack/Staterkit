@@ -1,0 +1,38 @@
+// 로고 이미지 치수: desktop 700×180, toggle 180×180
+// 비율 유지하여 표시 (object-fit: contain)
+.header-logo {
+  .desktop-logo,
+  .desktop-dark,
+  .desktop-white {
+    height: 4.5rem; // 72px 기준 높이, 가로는 비율에 따라 auto
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .toggle-logo,
+  .toggle-dark,
+  .toggle-white {
+    width: 4.5rem;
+    height: 4.5rem;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+// 네비게이션 브랜드 로고(동일 비율 적용)
+.navbar-brand img {
+  height: 4.5rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+// 랜딩/기타 구역에서 desktop 비율(700×180) 로고
+.logo-desktop,
+.responsive-logo img {
+  height: 4.5rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
