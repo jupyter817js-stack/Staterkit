@@ -238,9 +238,10 @@ export async function extractSureBetTipsAsync(
         ),
         resolvers.getBookmakerName(bet.bookmaker_id),
       ]);
+      const hasLine = lineAndMarket.lineLabel?.trim() && lineAndMarket.lineLabel !== "-";
       const marketName =
-        lineAndMarket.lineLabel !== "-" && lineAndMarket.marketLabel !== "-"
-          ? `${lineAndMarket.lineLabel} - ${lineAndMarket.marketLabel}`
+        hasLine && lineAndMarket.marketLabel !== "-"
+          ? `${lineAndMarket.marketLabel} - ${lineAndMarket.lineLabel}`
           : lineAndMarket.marketLabel;
       legs.push({
         bookmakerName,

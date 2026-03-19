@@ -1,6 +1,6 @@
 import PrelineScript from '@/pages/PrelineScript.page';
 import store from '@/shared/redux/store';
-import SubscriptionPaymentPoller from '@/pages/components/subscription/SubscriptionPaymentPoller';
+import PaymentSignalRProvider from '@/shared/contexts/PaymentSignalRContext';
 import React, { Fragment, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import Landingswitcher from '../switcher/landingswitcher';
@@ -26,13 +26,14 @@ const Landinglayout = ({children}:any) => {
    <Initialload.Provider value={{ pageloading, setpageloading }}>
        <Provider store={store}>
        <LanguageProvider>
+       <PaymentSignalRProvider>
        <div>
         <Landingswitcher />
         {children}
       <div id="responsive-overlay"></div>
-       <SubscriptionPaymentPoller />
        <PrelineScript/>
      </div>
+       </PaymentSignalRProvider>
        </LanguageProvider>
           </Provider>
           </Initialload.Provider>

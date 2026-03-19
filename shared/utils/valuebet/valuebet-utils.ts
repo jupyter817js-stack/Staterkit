@@ -7,6 +7,7 @@ export interface ValueBetTipDisplay {
   sport: string;
   /** period_identifier로 조회한 구간명 (예: 1st Half, Regular Time) */
   periodLabel?: string;
+  marketDepth?: string;
   leagueName: string;
   homeName: string;
   awayName: string;
@@ -171,6 +172,22 @@ export function parseMarketDisplay(display: string): { lineLabel: string; market
   return { lineLabel: "-", marketLabel: display.trim() || "-" };
 }
 
+function formatMarketDepth(value: unknown): string {
+  if (value == null) return "-";
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return "-";
+    return Number.isInteger(value)
+      ? value.toString()
+      : value.toFixed(2).replace(/\.?0+$/, "");
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed || "-";
+  }
+  if (typeof value === "boolean") return value ? "1" : "0";
+  return String(value);
+}
+
 export function extractValueBetTips(
   data: ValueBetsSearchResponse | null,
 ): ValueBetTipDisplay[] {
@@ -197,6 +214,7 @@ export function extractValueBetTips(
       betId: bet.id,
       sportId: bet.sport_id,
       sport: getSportName(bet.sport_id),
+      marketDepth: formatMarketDepth((bet as { market_depth?: unknown }).market_depth),
       leagueName: bet.league_name ?? bet.league ?? "-",
       homeName: bet.home ?? bet.team1_name ?? "-",
       awayName: bet.away ?? bet.team2_name ?? "-",
@@ -271,7 +289,8 @@ export async function extractValueBetTipsAsync(
     const lineLabel = lineAndMarket.lineLabel;
     const marketLabel = lineAndMarket.marketLabel;
     const marketDescription = lineAndMarket.marketDescription;
-    const marketName = lineLabel !== "-" && marketLabel !== "-" ? `${lineLabel} - ${marketLabel}` : marketLabel !== "-" ? marketLabel : `마켓 ${bet.market_and_bet_type ?? ""}`;
+    const hasLine = lineLabel?.trim() && lineLabel !== "-";
+    const marketName = hasLine && marketLabel !== "-" ? `${marketLabel} - ${lineLabel}` : marketLabel !== "-" ? marketLabel : `마켓 ${bet.market_and_bet_type ?? ""}`;
     const { dateLabel, timeLabel } = formatStartTimeSplit(bet.started_at);
     const percent = vb.middle_value != null ? Number(vb.middle_value) : Number(vb.percent ?? 0);
 
@@ -280,6 +299,7 @@ export async function extractValueBetTipsAsync(
       sportId: bet.sport_id,
       sport,
       periodLabel: periodLabel ?? undefined,
+      marketDepth: formatMarketDepth((bet as { market_depth?: unknown }).market_depth),
       leagueName: bet.league_name ?? bet.league ?? "-",
       homeName: bet.home ?? bet.team1_name ?? "-",
       awayName: bet.away ?? bet.team2_name ?? "-",

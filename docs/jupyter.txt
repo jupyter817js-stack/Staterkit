@@ -1,0 +1,862 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using cAlgo.API;
+using cAlgo.API.Indicators;
+
+namespace cAlgo.Robots
+{
+    [Robot(AccessRights = AccessRights.None, AddIndicators = true)]
+    public class JupiterBot : Robot
+    {
+        // =========================
+        // Parameters
+        // =========================
+
+        [Parameter("Label", Group = "General", DefaultValue = "HTF_FIB_FRAC")]
+        public string BotLabel { get; set; }
+
+        public enum TradeMode
+        {
+            LongOnly = 0,
+            ShortOnly = 1,
+            Both = 2
+        }
+
+        [Parameter("Trade Mode", Group = "General", DefaultValue = TradeMode.LongOnly)]
+        public TradeMode Mode { get; set; }
+
+        // ---- Timeframes (Rule 2: Higher = Daily; Rule 7: Lower = 30 min)
+        [Parameter("Higher TF", Group = "Timeframes", DefaultValue = "Daily")]
+        public TimeFrame HigherTimeFrame { get; set; }
+
+        [Parameter("Lower TF", Group = "Timeframes", DefaultValue = "Minute30")]
+        public TimeFrame LowerTimeFrame { get; set; }
+
+        // ---- EMA Filter (Rule 1: A=8, B=13, C=21 — A>B, B>C for Long; reverse for Short)
+        [Parameter("EMA A Period", Group = "EMA Filter", DefaultValue = 8)]
+        public int EmaAPeriod { get; set; }
+
+        [Parameter("EMA B Period", Group = "EMA Filter", DefaultValue = 13)]
+        public int EmaBPeriod { get; set; }
+
+        [Parameter("EMA C Period", Group = "EMA Filter", DefaultValue = 21)]
+        public int EmaCPeriod { get; set; }
+
+        [Parameter("Gap1 Min (|EMA A-B|/ATR)", Group = "EMA Filter", DefaultValue = 0.25, MinValue = 0.0)]
+        public double Gap1Minimum { get; set; }
+
+        [Parameter("Gap2 Min (|EMA B-C|/ATR)", Group = "EMA Filter", DefaultValue = 0.50, MinValue = 0.0)]
+        public double Gap2Minimum { get; set; }
+
+        [Parameter("ATR Length", Group = "ATR", DefaultValue = 14)]
+        public int AtrPeriod { get; set; }
+
+        public enum AtrSmoothingType { Wilder, Exponential, Simple }
+        [Parameter("ATR Smoothing", Group = "ATR", DefaultValue = AtrSmoothingType.Wilder)]
+        public AtrSmoothingType AtrSmoothing { get; set; }
+
+        // ---- Candle Color Rule (Rule 3)a
+        public enum ColorRule
+        {
+            Any = 0,
+            Same = 1,
+            Different = 2
+        }
+
+        [Parameter("HTF Color Rule", Group = "HTF Pattern", DefaultValue = ColorRule.Any)]
+        public ColorRule HtfColorRule { get; set; }
+
+        // ---- Body strength (Rule 6) (Median)
+        [Parameter("Body Lookback X", Group = "HTF Strength", DefaultValue = 100)]
+        public int BodyLookbackX { get; set; }
+
+        [Parameter("Body Multiplier Y", Group = "HTF Strength", DefaultValue = 1.5)]
+        public double BodyMultiplierY { get; set; }
+
+        // ---- Tick volume filter (Rule 15)
+        [Parameter("Vol Multiplier X", Group = "HTF Volume", DefaultValue = 1.1)]
+        public double VolMultiplierX { get; set; }
+
+        [Parameter("Vol EMA Period Y", Group = "HTF Volume", DefaultValue = 50)]
+        public int VolEmaPeriodY { get; set; }
+
+        // ---- Retracement zone (Rule 8: ATR-based)
+        [Parameter("Retracement ATR Units", Group = "Entry", DefaultValue = 0.5, MinValue = 0.01)]
+        public double RetracementAtrUnits { get; set; }
+
+        [Parameter("Max Limit Orders", Group = "Entry", DefaultValue = 4)]
+        public int MaxLimitOrders { get; set; }
+
+        // ---- Fractal settings (Rule 9)
+        [Parameter("Fractal Period (odd)", Group = "Fractal", DefaultValue = 5)]
+        public int FractalPeriod { get; set; }
+
+        [Parameter("Fractal Shift", Group = "Fractal", DefaultValue = 0)]
+        public int FractalShift { get; set; }
+
+        // ---- SL / TP / BE (Rules 10,11,14) | Rule 16 = 100% retracement annul
+        [Parameter("SL Buffer %", Group = "Risk", DefaultValue = 10)]
+        public double SlBufferPercent { get; set; }
+
+        [Parameter("R:R", Group = "Risk", DefaultValue = 1.5)]
+        public double RiskReward { get; set; }
+
+        [Parameter("Move SL->BE at %TP", Group = "Risk", DefaultValue = 50)]
+        public double MoveToBeAtPercentOfTp { get; set; }
+
+        // ---- Order cancellation (Rules 12,13)
+        [Parameter("Cancel On Nth HTF Candle Open", Group = "Cancel", DefaultValue = 5)]
+        public int CancelAfterHtfBars { get; set; }
+
+        [Parameter("Burst Cancel % of Body", Group = "Cancel", DefaultValue = 50)]
+        public double BurstCancelPercentOfBody { get; set; }
+
+        // ---- Volume (Units)  int only (Parameter supports int, not long)
+        [Parameter("Volume per Order (Units)", Group = "Volume", DefaultValue = 10000)]
+        public int VolumePerOrder { get; set; }
+
+        // ---- Debug Logging
+        [Parameter("Debug Logs", Group = "Debug", DefaultValue = true)]
+        public bool DebugLogs { get; set; }
+
+        [Parameter("Verbose Rule Logs", Group = "Debug", DefaultValue = true)]
+        public bool VerboseRuleLogs { get; set; }
+
+        // =========================
+        // Internals
+        // =========================
+
+        private IBarSeries _htf;
+        private IBarSeries _ltf;
+
+        private Bars _htfBarsTf;
+        private ExponentialMovingAverage _emaA;
+        private ExponentialMovingAverage _emaB;
+        private ExponentialMovingAverage _emaC;
+
+        private int _lastHtfCount;
+        private int _lastLtfCount;
+
+        private SetupState _setup;
+        private readonly HashSet<long> _beMovedPositionIds = new HashSet<long>();
+
+        private enum SetupDirection { Long, Short }
+
+        private class SetupState
+        {
+            public bool Active;
+            public SetupDirection Direction;
+
+            public DateTime SignalBarOpenTime;
+            public int SignalBarIndex;
+
+            public double Open2, Close2, Low2, High2;
+            public double Low1, High1;
+
+            public double ZoneLevel;
+            public double ZoneExtreme;
+            public double StopLossPrice;
+
+            public int OrdersPlaced;
+            public bool CancelledByTime;
+            public bool CancelledByBurst;
+            public bool CancelledBy100Retracement;
+
+            public string SetupId;
+        }
+
+        // =========================
+        // Bar series abstraction
+        // =========================
+
+        private interface IBarSeries
+        {
+            int Count { get; }
+            DateTime OpenTime(int index);
+            double Open(int index);
+            double High(int index);
+            double Low(int index);
+            double Close(int index);
+            double TickVolume(int index);
+        }
+
+        private class TimeFrameSeries : IBarSeries
+        {
+            private readonly Bars _bars;
+            public TimeFrameSeries(Bars bars) { _bars = bars; }
+
+            public int Count => _bars.Count;
+            public DateTime OpenTime(int index) => _bars.OpenTimes[index];
+            public double Open(int index) => _bars.OpenPrices[index];
+            public double High(int index) => _bars.HighPrices[index];
+            public double Low(int index) => _bars.LowPrices[index];
+            public double Close(int index) => _bars.ClosePrices[index];
+            public double TickVolume(int index) => Convert.ToDouble(_bars.TickVolumes[index]);
+        }
+
+        // =========================
+        // Lifecycle
+        // =========================
+
+        protected override void OnStart()
+        {
+            try
+            {
+                ValidateParameters();
+
+                // Subscribe events
+                Positions.Opened += OnPositionsOpened;
+                Positions.Closed += OnPositionsClosed;
+                PendingOrders.Filled += OnPendingOrdersFilled;
+                PendingOrders.Cancelled += OnPendingOrdersCancelled;
+
+                _htfBarsTf = MarketData.GetBars(HigherTimeFrame, SymbolName);
+                _htf = new TimeFrameSeries(_htfBarsTf);
+
+                _emaA = Indicators.ExponentialMovingAverage(_htfBarsTf.ClosePrices, EmaAPeriod);
+                _emaB = Indicators.ExponentialMovingAverage(_htfBarsTf.ClosePrices, EmaBPeriod);
+                _emaC = Indicators.ExponentialMovingAverage(_htfBarsTf.ClosePrices, EmaCPeriod);
+
+                var ltfBars = MarketData.GetBars(LowerTimeFrame, SymbolName);
+                _ltf = new TimeFrameSeries(ltfBars);
+
+                _lastHtfCount = _htf.Count;
+                _lastLtfCount = _ltf.Count;
+
+                _setup = new SetupState { Active = false };
+
+                Log("[START] Symbol={0} Mode={1} HTF={2} LTF={3} Volume={4}",
+                    SymbolName, Mode, HigherTimeFrame, LowerTimeFrame, VolumePerOrder);
+            }
+            catch (Exception ex)
+            {
+                Print("[FATAL] OnStart exception: " + ex.Message);
+                throw;
+            }
+        }
+
+        protected override void OnStop()
+        {
+            Positions.Opened -= OnPositionsOpened;
+            Positions.Closed -= OnPositionsClosed;
+            PendingOrders.Filled -= OnPendingOrdersFilled;
+            PendingOrders.Cancelled -= OnPendingOrdersCancelled;
+
+            Log("[STOP] JupiterBot stopped.");
+            Print("[STOP] OnStop called. setupActive=" + (_setup?.Active ?? false));
+        }
+
+        private void ValidateParameters()
+        {
+            if (EmaAPeriod <= 0 || EmaBPeriod <= 0 || EmaCPeriod <= 0)
+                PrintErrorAndStop("EMA periods must be > 0");
+
+            if (Gap1Minimum < 0)
+                PrintErrorAndStop("Gap1 Min must be >= 0");
+
+            if (Gap2Minimum < 0)
+                PrintErrorAndStop("Gap2 Min must be >= 0");
+
+            if (AtrPeriod < 2)
+                PrintErrorAndStop("ATR Period must be >= 2");
+
+            if (RetracementAtrUnits <= 0)
+                PrintErrorAndStop("Retracement ATR Units must be > 0");
+
+            if (BodyLookbackX < 10)
+                PrintErrorAndStop("Body Lookback X should be at least 10");
+
+            if (VolEmaPeriodY < 5)
+                PrintErrorAndStop("Vol EMA Period Y should be at least 5");
+
+            if (FractalPeriod < 3 || FractalPeriod % 2 == 0)
+                PrintErrorAndStop("Fractal Period must be an odd number >= 3");
+
+
+            if (MaxLimitOrders < 1)
+                PrintErrorAndStop("Max Limit Orders must be >= 1");
+
+            if (VolumePerOrder < Symbol.VolumeInUnitsMin || VolumePerOrder > Symbol.VolumeInUnitsMax)
+                PrintErrorAndStop($"Volume per order must be between {Symbol.VolumeInUnitsMin} and {Symbol.VolumeInUnitsMax}");
+
+            if (VolumePerOrder % Symbol.VolumeInUnitsMin != 0)
+                PrintErrorAndStop("Volume per order is invalid for this symbol");
+
+            if (CancelAfterHtfBars < 2)
+                PrintErrorAndStop("Cancel On Nth HTF Candle Open must be >= 2");
+        }
+
+        private void PrintErrorAndStop(string msg)
+        {
+            Print("[FATAL] " + msg);
+            Stop();
+            throw new Exception(msg);
+        }
+
+        protected override void OnTick()
+        {
+            if (_htf.Count != _lastHtfCount)
+            {
+                _lastHtfCount = _htf.Count;
+                OnNewHtfBarOpened();
+            }
+
+            if (_ltf.Count != _lastLtfCount)
+            {
+                _lastLtfCount = _ltf.Count;
+                OnNewLtfBarClosed();
+            }
+
+            ManageRule16_100PercentRetracement();
+            ManageCancellations();
+            ManagePositionsBreakEven();
+        }
+
+        // =========================
+        // HTF Logic
+        // =========================
+
+        private void OnNewHtfBarOpened()
+        {
+            if (_htf.Count < 10) return;
+
+            int idx2 = _htf.Count - 2;
+            int idx1 = _htf.Count - 3;
+
+            if (idx2 - BodyLookbackX < 0) return;
+
+            LogV("[HTF] New bar opened. idx2 time={0}", _htf.OpenTime(idx2).ToString("yyyy-MM-dd HH:mm"));
+
+            if (Mode == TradeMode.LongOnly || Mode == TradeMode.Both)
+            {
+                if (IsValidSetup(idx1, idx2, SetupDirection.Long, out var detail))
+                {
+                    Log("[HTFCHK] LONG PASS " + detail);
+                    ActivateSetup(idx1, idx2, SetupDirection.Long);
+                }
+                else LogV("[HTFCHK] LONG FAIL " + detail);
+            }
+
+            if (Mode == TradeMode.ShortOnly || Mode == TradeMode.Both)
+            {
+                if (IsValidSetup(idx1, idx2, SetupDirection.Short, out var detail))
+                {
+                    Log("[HTFCHK] SHORT PASS " + detail);
+                    ActivateSetup(idx1, idx2, SetupDirection.Short);
+                }
+                else LogV("[HTFCHK] SHORT FAIL " + detail);
+            }
+        }
+
+        private bool IsValidSetup(int idx1, int idx2, SetupDirection dir, out string detail)
+        {
+            double emaA = GetEmaClose(idx2, EmaAPeriod);
+            double emaB = GetEmaClose(idx2, EmaBPeriod);
+            double emaC = GetEmaClose(idx2, EmaCPeriod);
+
+            bool r1Alignment = (dir == SetupDirection.Long) ? (emaA > emaB && emaB > emaC) : (emaA < emaB && emaB < emaC);
+            bool useGap1Filter = Gap1Minimum > 0;
+            bool useGap2Filter = Gap2Minimum > 0;
+            double atrVal = GetAtr(idx2);
+            double gap1 = Math.Abs(emaA - emaB) / atrVal;
+            double gap2 = Math.Abs(emaB - emaC) / atrVal;
+            bool r1GapAB = !useGap1Filter || (atrVal > Symbol.TickSize && gap1 >= Gap1Minimum);
+            bool r1GapBC = !useGap2Filter || (atrVal > Symbol.TickSize && gap2 >= Gap2Minimum);
+            bool r1Gap = r1GapAB && r1GapBC;
+            bool r1 = r1Alignment && r1Gap;
+
+            double o1 = _htf.Open(idx1);
+            double c1 = _htf.Close(idx1);
+            bool firstBull = c1 >= o1;
+
+            double o2 = _htf.Open(idx2);
+            double c2 = _htf.Close(idx2);
+            bool secondBull = c2 >= o2;
+
+            bool r3 = true;
+            if (HtfColorRule == ColorRule.Same) r3 = (firstBull == secondBull);
+            else if (HtfColorRule == ColorRule.Different) r3 = (firstBull != secondBull);
+
+            double low1 = _htf.Low(idx1);
+            double high1 = _htf.High(idx1);
+            double low2 = _htf.Low(idx2);
+            double high2 = _htf.High(idx2);
+
+            bool r4, r5;
+            if (dir == SetupDirection.Long)
+            {
+                r4 = (low2 < low1);
+                r5 = (c2 > high1);
+            }
+            else
+            {
+                r4 = (high2 > high1);
+                r5 = (c2 < low1);
+            }
+
+            double body2 = Math.Abs(c2 - o2);
+            double medianBody = GetMedianBody(idx2 - 1, BodyLookbackX);
+            bool r6 = body2 > Symbol.TickSize && medianBody > Symbol.TickSize && (body2 >= BodyMultiplierY * medianBody);
+
+            double vol2 = _htf.TickVolume(idx2);
+            double volEma = GetEmaTickVolume(idx2, VolEmaPeriodY);
+            bool r15 = volEma > 0 && (vol2 >= VolMultiplierX * volEma);
+
+            detail =
+                $"R1={(r1 ? "PASS" : "FAIL")} (Align={(r1Alignment ? "PASS" : "FAIL")}, Gap1={(useGap1Filter ? (r1GapAB ? "PASS" : "FAIL") : "OFF")}, Gap2={(useGap2Filter ? (r1GapBC ? "PASS" : "FAIL") : "OFF")}, G1={gap1:F2}/{Gap1Minimum:F2}, G2={gap2:F2}/{Gap2Minimum:F2}, ATR={atrVal:F5}) | " +
+                $"R3={(r3 ? "PASS" : "FAIL")} | " +
+                $"R4={(r4 ? "PASS" : "FAIL")} R5={(r5 ? "PASS" : "FAIL")} | " +
+                $"R6={(r6 ? "PASS" : "FAIL")} | " +
+                $"R15={(r15 ? "PASS" : "FAIL")}";
+
+            return r1 && r3 && r4 && r5 && r6 && r15;
+        }
+
+        private double GetEmaClose(int index, int period)
+        {
+            if (_emaA != null && _htfBarsTf != null)
+            {
+                if (period == EmaAPeriod) return _emaA.Result[index];
+                if (period == EmaBPeriod) return _emaB.Result[index];
+                if (period == EmaCPeriod) return _emaC.Result[index];
+            }
+
+            int start = Math.Max(0, index - period * 3);
+            double k = 2.0 / (period + 1);
+
+            double ema = _htf.Close(start);
+            for (int i = start + 1; i <= index; i++)
+                ema = (_htf.Close(i) - ema) * k + ema;
+
+            return ema;
+        }
+
+        private double GetEmaTickVolume(int index, int period)
+        {
+            int start = Math.Max(0, index - period * 3);
+            double k = 2.0 / (period + 1);
+
+            double ema = _htf.TickVolume(start);
+            for (int i = start + 1; i <= index; i++)
+                ema = (_htf.TickVolume(i) - ema) * k + ema;
+
+            return ema;
+        }
+
+        private double GetAtr(int index)
+        {
+            if (index < 1) return Symbol.TickSize;
+
+            if (AtrSmoothing == AtrSmoothingType.Simple)
+            {
+                int start = Math.Max(1, index - AtrPeriod + 1);
+                double sum = 0;
+                int count = 0;
+                for (int i = start; i <= index && i < _htf.Count; i++)
+                {
+                    double tr = Math.Max(_htf.High(i) - _htf.Low(i),
+                        Math.Max(Math.Abs(_htf.High(i) - _htf.Close(i - 1)), Math.Abs(_htf.Low(i) - _htf.Close(i - 1))));
+                    sum += tr;
+                    count++;
+                }
+                double atr = count > 0 ? sum / count : Symbol.TickSize;
+                return atr > Symbol.TickSize ? atr : Symbol.TickSize;
+            }
+
+            double k = (AtrSmoothing == AtrSmoothingType.Wilder) ? 1.0 / AtrPeriod : 2.0 / (AtrPeriod + 1);
+            int initStart = Math.Max(1, index - AtrPeriod * 3);
+            double atrVal = Math.Max(_htf.High(initStart) - _htf.Low(initStart),
+                Math.Max(Math.Abs(_htf.High(initStart) - _htf.Close(initStart - 1)), Math.Abs(_htf.Low(initStart) - _htf.Close(initStart - 1))));
+            for (int i = initStart + 1; i <= index && i < _htf.Count; i++)
+            {
+                double tr = Math.Max(_htf.High(i) - _htf.Low(i),
+                    Math.Max(Math.Abs(_htf.High(i) - _htf.Close(i - 1)), Math.Abs(_htf.Low(i) - _htf.Close(i - 1))));
+                atrVal = (tr - atrVal) * k + atrVal;
+            }
+            return atrVal > Symbol.TickSize ? atrVal : Symbol.TickSize;
+        }
+
+        private double GetMedianBody(int endIndexInclusive, int lookback)
+        {
+            int start = endIndexInclusive - lookback + 1;
+            if (start < 0) return 0;
+
+            var bodies = new double[lookback];
+            int j = 0;
+
+            for (int i = start; i <= endIndexInclusive; i++)
+                bodies[j++] = Math.Abs(_htf.Close(i) - _htf.Open(i));
+
+            Array.Sort(bodies);
+
+            int mid = lookback / 2;
+            return (lookback % 2 == 1) ? bodies[mid] : (bodies[mid - 1] + bodies[mid]) / 2.0;
+        }
+
+        private void ActivateSetup(int idx1, int idx2, SetupDirection dir)
+        {
+            CancelAllPendingOrders();
+
+            string setupId = $"{dir.ToString().Substring(0, 1)}|{_htf.OpenTime(idx2):yyyyMMddHHmm}";
+
+            _setup = new SetupState
+            {
+                Active = true,
+                Direction = dir,
+                SignalBarIndex = idx2,
+                SignalBarOpenTime = _htf.OpenTime(idx2),
+                Low1 = _htf.Low(idx1),
+                High1 = _htf.High(idx1),
+                Open2 = _htf.Open(idx2),
+                Close2 = _htf.Close(idx2),
+                Low2 = _htf.Low(idx2),
+                High2 = _htf.High(idx2),
+                OrdersPlaced = 0,
+                CancelledByTime = false,
+                CancelledByBurst = false,
+                CancelledBy100Retracement = false,
+                SetupId = setupId
+            };
+
+            double atrVal = GetAtr(idx2);
+
+            if (dir == SetupDirection.Long)
+            {
+                _setup.ZoneLevel = _setup.Close2 - atrVal * RetracementAtrUnits;
+                _setup.ZoneExtreme = _setup.Low2;
+
+                double D = Math.Abs(_setup.Close2 - _setup.Low2);
+                _setup.StopLossPrice = _setup.Low2 - D * (SlBufferPercent / 100.0);
+            }
+            else
+            {
+                _setup.ZoneLevel = _setup.Close2 + atrVal * RetracementAtrUnits;
+                _setup.ZoneExtreme = _setup.High2;
+
+                double D = Math.Abs(_setup.High2 - _setup.Close2);
+                _setup.StopLossPrice = _setup.High2 + D * (SlBufferPercent / 100.0);
+            }
+
+            Log("[SETUP] {0} SetupId={1} SignalTime={2} | Zone=[{3}..{4}] SL={5}",
+                dir, setupId, _setup.SignalBarOpenTime.ToString("yyyy-MM-dd HH:mm"),
+                _setup.ZoneExtreme, _setup.ZoneLevel, _setup.StopLossPrice);
+        }
+
+        // =========================
+        // LTF Logic: fractals & limit orders
+        // =========================
+
+        private void OnNewLtfBarClosed()
+        {
+            if (!_setup.Active) return;
+            if (_setup.CancelledByTime || _setup.CancelledByBurst || _setup.CancelledBy100Retracement) return;
+            if (_setup.OrdersPlaced >= MaxLimitOrders) return;
+
+            if (_setup.Direction == SetupDirection.Long)
+            {
+                if (Symbol.Ask > _setup.ZoneLevel) return;
+
+                int fractalIndex = GetConfirmedFractalIndex(isLowFractal: true);
+                if (fractalIndex < 0) return;
+
+                double fractalPrice = _ltf.Low(fractalIndex);
+
+                if (!(fractalPrice <= _setup.ZoneLevel && fractalPrice >= _setup.ZoneExtreme))
+                    return;
+
+                if (HasPendingLimitAtPrice(fractalPrice, TradeType.Buy))
+                    return;
+
+                PlaceLimit(fractalPrice, TradeType.Buy);
+            }
+            else
+            {
+                if (Symbol.Bid < _setup.ZoneLevel) return;
+
+                int fractalIndex = GetConfirmedFractalIndex(isLowFractal: false);
+                if (fractalIndex < 0) return;
+
+                double fractalPrice = _ltf.High(fractalIndex);
+
+                if (!(fractalPrice >= _setup.ZoneLevel && fractalPrice <= _setup.ZoneExtreme))
+                    return;
+
+                if (HasPendingLimitAtPrice(fractalPrice, TradeType.Sell))
+                    return;
+
+                PlaceLimit(fractalPrice, TradeType.Sell);
+            }
+        }
+
+        private int GetConfirmedFractalIndex(bool isLowFractal)
+        {
+            int left = FractalPeriod / 2;
+            int right = FractalPeriod / 2;
+
+            int lastClosed = _ltf.Count - 2;
+            int candidate = lastClosed - right - FractalShift;
+
+            if (candidate - left < 0 || candidate + right >= _ltf.Count)
+                return -1;
+
+            if (isLowFractal)
+            {
+                double p = _ltf.Low(candidate);
+                for (int k = 1; k <= left; k++)
+                    if (_ltf.Low(candidate - k) <= p) return -1;
+                for (int k = 1; k <= right; k++)
+                    if (_ltf.Low(candidate + k) <= p) return -1;
+            }
+            else
+            {
+                double p = _ltf.High(candidate);
+                for (int k = 1; k <= left; k++)
+                    if (_ltf.High(candidate - k) >= p) return -1;
+                for (int k = 1; k <= right; k++)
+                    if (_ltf.High(candidate + k) >= p) return -1;
+            }
+
+            return candidate;
+        }
+
+        private bool HasPendingLimitAtPrice(double price, TradeType type)
+        {
+            var pending = PendingOrders
+                .Where(o => o.SymbolName == SymbolName && o.Label.StartsWith(BotLabel) && o.OrderType == PendingOrderType.Limit && o.TradeType == type)
+                .ToArray();
+
+            foreach (var o in pending)
+                if (Math.Abs(o.TargetPrice - price) <= Symbol.TickSize)
+                    return true;
+
+            return false;
+        }
+
+        private void PlaceLimit(double price, TradeType type)
+        {
+            string dirTag = (_setup.Direction == SetupDirection.Long) ? "L" : "S";
+            string label = $"{BotLabel}|{dirTag}|{_setup.SignalBarOpenTime:yyyyMMddHHmm}|{_setup.SetupId}|#{_setup.OrdersPlaced + 1}";
+
+            double? slPrice = _setup.StopLossPrice;
+            double? tpPrice = (type == TradeType.Buy)
+                ? price + (price - _setup.StopLossPrice) * RiskReward
+                : price - (_setup.StopLossPrice - price) * RiskReward;
+
+            var r = PlaceLimitOrder(type, SymbolName, VolumePerOrder, price, label, slPrice, tpPrice, ProtectionType.Absolute);
+
+            if (r.IsSuccessful)
+            {
+                _setup.OrdersPlaced++;
+                Log($"[ORDER] {type} LIMIT @ {price} | SL={slPrice} TP={tpPrice} | label={label}");
+            }
+            else
+            {
+                Log($"[ERROR] PlaceLimitOrder failed: {r.Error} | label={label}");
+            }
+        }
+
+        // =========================
+        // Rule 16: 100% retracement — cancel pendings, no new trades; open positions left to run
+        // =========================
+
+        // Rule 16: If price retraces to 100% (origin of second HTF candle), annul: cancel pendings, do not open new trades. Existing positions are left to run.
+        private void ManageRule16_100PercentRetracement()
+        {
+            if (!_setup.Active) return;
+            if (_setup.CancelledBy100Retracement) return;
+
+            bool annul = false;
+            if (_setup.Direction == SetupDirection.Long)
+            {
+                if (Symbol.Bid <= _setup.Low2)
+                    annul = true;
+            }
+            else
+            {
+                if (Symbol.Ask >= _setup.High2)
+                    annul = true;
+            }
+
+            if (!annul) return;
+
+            _setup.CancelledBy100Retracement = true;
+            CancelAllPendingOrders();
+            Log($"[CANCEL] Rule16 100% retracement. Pendings cancelled; no new trades. Open positions left to run. SetupId={_setup.SetupId}");
+        }
+
+        // =========================
+        // Cancellation & Management (Rules 12, 13, 14)
+        // =========================
+
+        private void ManageCancellations()
+        {
+            if (!_setup.Active) return;
+            if (_setup.CancelledBy100Retracement) return;
+
+            int currentHtfLastClosedIndex = _htf.Count - 2;
+            int barsSinceSignal = currentHtfLastClosedIndex - _setup.SignalBarIndex;
+
+            int cancelAfter = CancelAfterHtfBars - 1;
+
+            if (!_setup.CancelledByTime && barsSinceSignal >= cancelAfter)
+            {
+                _setup.CancelledByTime = true;
+                CancelAllPendingOrders();
+                Log($"[CANCEL] Rule12 Time cancel. barsSinceSignal={barsSinceSignal} (>= {cancelAfter}) SetupId={_setup.SetupId}");
+            }
+
+            if (!_setup.CancelledByBurst && !_setup.CancelledByTime && barsSinceSignal < cancelAfter)
+            {
+                double bodyOC = Math.Abs(_setup.Close2 - _setup.Open2);
+                double burstDistance = bodyOC * (BurstCancelPercentOfBody / 100.0);
+
+                if (_setup.Direction == SetupDirection.Long)
+                {
+                    double burstLevel = _setup.Close2 + burstDistance;
+                    if (Symbol.Bid >= burstLevel)
+                    {
+                        _setup.CancelledByBurst = true;
+                        CancelAllPendingOrders();
+                        Log($"[CANCEL] Rule13 Burst cancel LONG. Bid={Symbol.Bid} >= {burstLevel} SetupId={_setup.SetupId}");
+                    }
+                }
+                else
+                {
+                    double burstLevel = _setup.Close2 - burstDistance;
+                    if (Symbol.Ask <= burstLevel)
+                    {
+                        _setup.CancelledByBurst = true;
+                        CancelAllPendingOrders();
+                        Log($"[CANCEL] Rule13 Burst cancel SHORT. Ask={Symbol.Ask} <= {burstLevel} SetupId={_setup.SetupId}");
+                    }
+                }
+            }
+        }
+
+        private void CancelAllPendingOrders()
+        {
+            var pending = PendingOrders
+                .Where(o => o.SymbolName == SymbolName && o.Label.StartsWith(BotLabel))
+                .ToArray();
+
+            foreach (var o in pending)
+                CancelPendingOrder(o);
+        }
+
+        private void ManagePositionsBreakEven()
+        {
+            var myPositions = Positions
+                .Where(p => p.SymbolName == SymbolName && p.Label.StartsWith(BotLabel))
+                .ToArray();
+
+            foreach (var pos in myPositions)
+            {
+                if (_beMovedPositionIds.Contains(pos.Id)) continue;
+                if (pos.TakeProfit == null) continue;
+
+                double entry = pos.EntryPrice;
+                double tp = pos.TakeProfit.Value;
+
+                if (pos.TradeType == TradeType.Buy)
+                {
+                    double trigger = entry + (tp - entry) * (MoveToBeAtPercentOfTp / 100.0);
+                    if (Symbol.Bid >= trigger)
+                    {
+                        // ProtectionType.Absolute = SL/TP as price levels. (None would remove both SL and TP.)
+                        var mod = ModifyPosition(pos, entry, pos.TakeProfit, ProtectionType.Absolute);
+                        if (mod.IsSuccessful)
+                        {
+                            _beMovedPositionIds.Add(pos.Id);
+                            Log($"[BE] Rule14 BUY pos {pos.Id}: SL->Entry. Trigger={trigger}");
+                        }
+                        else
+                        {
+                            Log($"[ERROR] ModifyPosition failed: {mod.Error} posId={pos.Id}");
+                        }
+                    }
+                }
+                else
+                {
+                    double trigger = entry - (entry - tp) * (MoveToBeAtPercentOfTp / 100.0);
+                    if (Symbol.Ask <= trigger)
+                    {
+                        // ProtectionType.Absolute = SL/TP as price levels. (None would remove both SL and TP.)
+                        var mod = ModifyPosition(pos, entry, pos.TakeProfit, ProtectionType.Absolute);
+                        if (mod.IsSuccessful)
+                        {
+                            _beMovedPositionIds.Add(pos.Id);
+                            Log($"[BE] Rule14 SELL pos {pos.Id}: SL->Entry. Trigger={trigger}");
+                        }
+                        else
+                        {
+                            Log($"[ERROR] ModifyPosition failed: {mod.Error} posId={pos.Id}");
+                        }
+                    }
+                }
+            }
+        }
+
+        // =========================
+        // Event logs (results)
+        // =========================
+
+        private void OnPositionsOpened(PositionOpenedEventArgs args)
+        {
+            var p = args.Position;
+            if (p.SymbolName != SymbolName) return;
+            if (!p.Label.StartsWith(BotLabel)) return;
+
+            Log($"[FILL] Position OPENED id={p.Id} type={p.TradeType} entry={p.EntryPrice} sl={p.StopLoss} tp={p.TakeProfit} label={p.Label}");
+        }
+
+        private void OnPositionsClosed(PositionClosedEventArgs args)
+        {
+            var p = args.Position;
+            if (p.SymbolName != SymbolName) return;
+            if (!p.Label.StartsWith(BotLabel)) return;
+
+            Log($"[CLOSE] Position CLOSED id={p.Id} type={p.TradeType} gross={p.GrossProfit} net={p.NetProfit} pips={p.Pips} label={p.Label}");
+        }
+
+        private void OnPendingOrdersFilled(PendingOrderFilledEventArgs args)
+        {
+            var o = args.PendingOrder;
+            if (o.SymbolName != SymbolName) return;
+            if (!o.Label.StartsWith(BotLabel)) return;
+
+            Log($"[FILLED] Pending FILLED id={o.Id} type={o.TradeType} target={o.TargetPrice} label={o.Label}");
+        }
+
+        private void OnPendingOrdersCancelled(PendingOrderCancelledEventArgs args)
+        {
+            var o = args.PendingOrder;
+            if (o.SymbolName != SymbolName) return;
+            if (!o.Label.StartsWith(BotLabel)) return;
+
+            Log($"[CANCELLED] Pending CANCELLED id={o.Id} type={o.TradeType} target={o.TargetPrice} label={o.Label}");
+        }
+
+        // =========================
+        // Logging helpers
+        // =========================
+
+        private void Log(string fmt, params object[] args)
+        {
+            if (!DebugLogs) return;
+            Print(string.Format(fmt, args));
+        }
+
+        private void Log(string msg)
+        {
+            if (!DebugLogs) return;
+            Print(msg);
+        }
+
+        private void LogV(string fmt, params object[] args)
+        {
+            if (!DebugLogs || !VerboseRuleLogs) return;
+            Print(string.Format(fmt, args));
+        }
+    }
+}

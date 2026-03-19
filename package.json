@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.14.0",
+    "@microsoft/signalr": "^10.0.0",
     "@reduxjs/toolkit": "^2.5.1",
     "@simonwep/pickr": "^1.9.1",
     "@tailwindcss/forms": "^0.5.10",
@@ -32,6 +33,7 @@
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.0.0",
     "react-perfect-scrollbar": "^1.5.8",
+    "react-qr-code": "^2.0.18",
     "react-redux": "^9.2.0",
     "react-select": "^5.10.2",
     "reducers": "^3.0.0-alpha",

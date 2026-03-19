@@ -76,7 +76,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     });
     if (!res.ok) return null;
     const data = (await res.json()) as Record<string, unknown>;
-    return normalizeCurrentUser(data);
+    if (data.success === false) return null;
+    const payload =
+      data.data && typeof data.data === "object"
+        ? (data.data as Record<string, unknown>)
+        : data;
+    return normalizeCurrentUser(payload);
   } catch {
     return null;
   }

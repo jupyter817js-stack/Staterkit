@@ -2,6 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/shared/i18n/LanguageContext";
+import {
+  normalizeWalletNetwork,
+  WALLET_NETWORK_OPTIONS,
+} from "@/shared/constants/crypto-networks";
 import type { Partner } from "@/shared/types/partner-store";
 import { createPartner, updatePartner } from "@/shared/api/partners";
 
@@ -40,7 +44,7 @@ export default function PartnerFormModal({ mode, partner, onClose, onSaved }: Pa
         email: "",
         password: "",
         commissionRatePercent: partner.commissionRatePercent ?? 40,
-        walletNetwork: partner.walletNetwork ?? "TRON",
+        walletNetwork: normalizeWalletNetwork(partner.walletNetwork, "TRON"),
         walletAddress: partner.walletAddress ?? "",
       });
     } else {
@@ -156,9 +160,11 @@ export default function PartnerFormModal({ mode, partner, onClose, onSaved }: Pa
             <div>
               <label className="block text-[0.8125rem] font-semibold mb-2">{t("walletNetwork")}</label>
               <select className="ti-form-select rounded-sm w-full !py-2.5 !px-3 !text-[0.8125rem] border border-defaultborder dark:border-white/10 bg-white dark:bg-bodybg" value={form.walletNetwork} onChange={(e) => setForm((p) => ({ ...p, walletNetwork: e.target.value }))}>
-                <option value="TRON">TRON</option>
-                <option value="POLYGON">POLYGON</option>
-                <option value="ETH">ETH</option>
+                {WALLET_NETWORK_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

@@ -63,7 +63,8 @@ export default function SurebetPage() {
   const [sortBy, setSortBy] = useState<BetsSortOption>("time_asc_profit_desc");
   const [timeRangePreset, setTimeRangePreset] = useState<TimeRangePreset>("all");
   const [minProfitPercent, setMinProfitPercent] = useState<number>(0);
-  const [alertMuted, setAlertMuted] = useState(false);
+  const [alertMuted, setAlertMuted] = useState(true);
+  const [alertSoundArmed, setAlertSoundArmed] = useState(false);
   useEffect(() => {
     try {
       if (typeof window !== "undefined" && localStorage.getItem("staterkit_alert_muted") === "1") {
@@ -188,23 +189,34 @@ export default function SurebetPage() {
   }, [sortedTips, timeRangePreset, minProfitPercent]);
 
   const displayedTipIds = React.useMemo(() => displayedTips.map((t) => t.id), [displayedTips]);
-  useNewOpportunityAlert(displayedTipIds, alertMuted);
+  const effectiveAlertMuted = alertMuted || !alertSoundArmed;
+  const { activateAlertSound } = useNewOpportunityAlert(displayedTipIds, effectiveAlertMuted);
 
   useEffect(() => {
     setSurebetCount(displayedTips.length);
   }, [displayedTips.length, setSurebetCount]);
 
-  const handleAlertMuteToggle = useCallback(() => {
-    setAlertMuted((prev) => {
-      const next = !prev;
+  const handleAlertMuteToggle = useCallback(async () => {
+    if (effectiveAlertMuted) {
+      const activated = await activateAlertSound();
+      setAlertSoundArmed(activated);
+      setAlertMuted(false);
       try {
-        localStorage.setItem("staterkit_alert_muted", next ? "1" : "0");
+        localStorage.setItem("staterkit_alert_muted", "0");
       } catch {
         /* localStorage unavailable or quota exceeded */
       }
-      return next;
-    });
-  }, []);
+      return;
+    }
+
+    setAlertMuted(true);
+    setAlertSoundArmed(false);
+    try {
+      localStorage.setItem("staterkit_alert_muted", "1");
+    } catch {
+      /* localStorage unavailable or quota exceeded */
+    }
+  }, [activateAlertSound, effectiveAlertMuted]);
 
   const handleCardClick = useCallback((tip: SureBetTipDisplay) => {
     setSelectedTipId(tip.id);
@@ -333,7 +345,7 @@ export default function SurebetPage() {
           <SureBetPageHeader
             displayName={displayName}
             showLowLatencyBadge={entitlements.data_latency_mode === "LOW_LATENCY"}
-            alertMuted={alertMuted}
+            alertMuted={effectiveAlertMuted}
             onAlertMuteToggle={handleAlertMuteToggle}
           />
           <SureBetFilters
@@ -389,11 +401,11 @@ export default function SurebetPage() {
                   </p>
                 </div>
                 <div
-                  className="grid gap-3 sm:gap-4 items-stretch"
-                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))" }}
+                  className="grid gap-3 sm:gap-4 items-start"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 540px), 1fr))" }}
                 >
                   {Array.from({ length: 6 }, (_, i) => (
-                    <div key={i} className="min-w-0 h-[340px] flex flex-col overflow-hidden p-[3px]">
+                    <div key={i} className="min-w-0 min-h-[396px] flex flex-col overflow-hidden p-[3px]">
                       <SureBetTipCardSkeleton />
                     </div>
                   ))}
@@ -424,13 +436,13 @@ export default function SurebetPage() {
                   </p>
                 </div>
                 <div
-                  className="grid gap-3 sm:gap-4 items-stretch"
-                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))" }}
+                  className="grid gap-3 sm:gap-4 items-start"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 540px), 1fr))" }}
                 >
                 {displayedTips.map((tip) => (
                   <div
                     key={tip.id}
-                    className="min-w-0 h-[340px] flex flex-col cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] rounded-[0.75rem] overflow-visible p-[3px]"
+                    className="min-w-0 min-h-[396px] flex flex-col cursor-pointer transition-all duration-200 ease-out active:scale-[0.98] rounded-[0.75rem] overflow-visible p-[3px]"
                     role="button"
                     tabIndex={0}
                     onClick={() => handleCardClick(tip)}

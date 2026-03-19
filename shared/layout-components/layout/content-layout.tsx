@@ -14,7 +14,7 @@ import Backtotop from '../backtotop/backtotop'
 import PrelineScript from '@/pages/PrelineScript.page';
 import { Initialload } from '../contextapi';
 import { getAuthToken, redirectToLogin } from '@/shared/api/auth';
-import SubscriptionPaymentPoller from '@/pages/components/subscription/SubscriptionPaymentPoller';
+import PaymentSignalRProvider from '@/shared/contexts/PaymentSignalRContext';
 
 const ContentLayout = ({ children }:any) => {
   const router = useRouter();
@@ -59,6 +59,7 @@ const ContentLayout = ({ children }:any) => {
        <Provider store={store}>
        <LanguageProvider>
        <BetsCountProvider>
+       <PaymentSignalRProvider>
        <div style={{display: `${lateLoad ? 'block' : 'none'}`}}>
         <Switcher/>
       <div className='page'>
@@ -72,9 +73,9 @@ const ContentLayout = ({ children }:any) => {
         <Footer/>
       </div>
       <Backtotop />
-      <SubscriptionPaymentPoller />
       <PrelineScript/>
         </div>
+       </PaymentSignalRProvider>
        </BetsCountProvider>
        </LanguageProvider>
       </Provider>

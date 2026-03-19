@@ -2,8 +2,5 @@
 export const SUBSCRIPTION_PAYMENT_PENDING_KEY =
   "staterkit_subscription_payment_pending";
 
-/** 폴링 간격(ms) */
-export const SUBSCRIPTION_POLL_INTERVAL_MS = 5000;
-
-/** 폴링 최대 대기(ms). 그 후에는 중단 */
-export const SUBSCRIPTION_POLL_MAX_WAIT_MS = 10 * 60 * 1000; // 10분
+/** 암호화폐 결제 인보이스 ID. SignalR 이벤트 처리 중 참조할 수 있도록 sessionStorage에 보관 */
+export const CRYPTO_INVOICE_ID_KEY = "staterkit_crypto_invoice_id";

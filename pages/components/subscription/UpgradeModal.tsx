@@ -38,7 +38,7 @@ export default function UpgradeModal({ show, onClose }: UpgradeModalProps) {
           </p>
           <div className="flex gap-2">
             <Link
-              href="/subscription"
+              href="/subscription?plan=PRO"
               className="ti-btn ti-btn-primary !font-medium"
               onClick={onClose}
             >

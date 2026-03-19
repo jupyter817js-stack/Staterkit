@@ -60,7 +60,8 @@ export default function ValuebetPage() {
   const [sortBy, setSortBy] = useState<BetsSortOption>("time_asc_profit_desc");
   const [timeRangePreset, setTimeRangePreset] = useState<TimeRangePreset>("all");
   const [minProfitPercent, setMinProfitPercent] = useState<number>(0);
-  const [alertMuted, setAlertMuted] = useState(false);
+  const [alertMuted, setAlertMuted] = useState(true);
+  const [alertSoundArmed, setAlertSoundArmed] = useState(false);
   const refreshIntervalSeconds = 5;
   useEffect(() => {
     try {
@@ -182,7 +183,8 @@ export default function ValuebetPage() {
   }, [sortedTips, timeRangePreset, minProfitPercent]);
 
   const displayedTipIds = React.useMemo(() => displayedTips.map((t) => t.betId), [displayedTips]);
-  useNewOpportunityAlert(displayedTipIds, alertMuted);
+  const effectiveAlertMuted = alertMuted || !alertSoundArmed;
+  const { activateAlertSound } = useNewOpportunityAlert(displayedTipIds, effectiveAlertMuted);
 
   useEffect(() => {
     setValuebetCount(displayedTips.length);
@@ -236,17 +238,27 @@ export default function ValuebetPage() {
     };
   }, [displayedTips, bookmakerOptions]);
 
-  const handleAlertMuteToggle = useCallback(() => {
-    setAlertMuted((prev) => {
-      const next = !prev;
+  const handleAlertMuteToggle = useCallback(async () => {
+    if (effectiveAlertMuted) {
+      const activated = await activateAlertSound();
+      setAlertSoundArmed(activated);
+      setAlertMuted(false);
       try {
-        localStorage.setItem("staterkit_alert_muted", next ? "1" : "0");
+        localStorage.setItem("staterkit_alert_muted", "0");
       } catch {
         /* localStorage unavailable or quota exceeded */
       }
-      return next;
-    });
-  }, []);
+      return;
+    }
+
+    setAlertMuted(true);
+    setAlertSoundArmed(false);
+    try {
+      localStorage.setItem("staterkit_alert_muted", "1");
+    } catch {
+      /* localStorage unavailable or quota exceeded */
+    }
+  }, [activateAlertSound, effectiveAlertMuted]);
 
   useEffect(() => {
     if (!data?.bets?.length || !data?.source?.value_bets?.length) {
@@ -325,7 +337,7 @@ export default function ValuebetPage() {
       <div className="flex flex-col min-h-0">
         <ValueBetPageHeader
           displayName={displayName}
-          alertMuted={alertMuted}
+          alertMuted={effectiveAlertMuted}
           onAlertMuteToggle={handleAlertMuteToggle}
         />
         <ValueBetFilters

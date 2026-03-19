@@ -28,6 +28,22 @@ const SPORT_TO_ICON: Record<string, string> = {
 
 const DEFAULT_ICON = "ri-trophy-line";
 
+const SPORT_TO_IMAGE: Record<string, string> = {
+  soccer: "/assets/images/sports/football.png",
+  football: "/assets/images/sports/football.png",
+  축구: "/assets/images/sports/football.png",
+  basketball: "/assets/images/sports/basketball.png",
+  농구: "/assets/images/sports/basketball.png",
+  tennis: "/assets/images/sports/tennis.png",
+  테니스: "/assets/images/sports/tennis.png",
+  baseball: "/assets/images/sports/baseball.png",
+  야구: "/assets/images/sports/baseball.png",
+  hockey: "/assets/images/sports/hocky.png",
+  하키: "/assets/images/sports/hocky.png",
+  volleyball: "/assets/images/sports/volleyball.png",
+  배구: "/assets/images/sports/volleyball.png",
+};
+
 /** 팀 마크 없을 때 스포츠별 대체 아이콘 (fill 스타일) */
 const SPORT_TO_MARK_FALLBACK: Record<string, string> = {
   soccer: "ri-football-fill",
@@ -52,6 +68,12 @@ export function getSportIconClass(sportName: string): string {
   if (!sportName?.trim()) return DEFAULT_ICON;
   const key = sportName.trim().toLowerCase();
   return SPORT_TO_ICON[key] ?? DEFAULT_ICON;
+}
+
+export function getSportImageSrc(sportName: string): string | null {
+  if (!sportName?.trim()) return null;
+  const key = sportName.trim().toLowerCase();
+  return SPORT_TO_IMAGE[key] ?? null;
 }
 
 /** 팀 마크 이미지가 없을 때 표시할 스포츠별 대체 아이콘 클래스 반환 */

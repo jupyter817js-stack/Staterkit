@@ -47,15 +47,15 @@ export default function ValueBetTable({
           </p>
         </div>
         <div
-          className="grid gap-1.5 sm:gap-2 items-stretch"
+          className="grid items-start gap-2.5 sm:gap-3.5"
           style={{
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 500px), 1fr))",
           }}
         >
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
             <div
               key={i}
-              className="min-w-0 min-h-0 flex flex-col h-full overflow-visible p-[3px]"
+              className="min-w-0 min-h-0 overflow-visible p-[3px]"
             >
               <ValueBetTipCardSkeleton />
             </div>
@@ -104,15 +104,15 @@ export default function ValueBetTable({
         </p>
       </div>
       <div
-        className="grid gap-1.5 sm:gap-2 items-stretch"
+        className="grid items-start gap-2.5 sm:gap-3.5"
         style={{
-          gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 500px), 1fr))",
         }}
       >
         {tips.map((tip) => (
           <div
             key={tip.betId}
-            className="min-w-0 min-h-0 flex flex-col h-full overflow-visible p-[3px]"
+            className="min-w-0 min-h-0 overflow-visible p-[3px]"
           >
             <ValueBetTipCard
               tip={tip}

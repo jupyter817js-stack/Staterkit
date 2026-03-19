@@ -1,7 +1,7 @@
 /**
  * 구독 등급 (2단계)
- * - STANDARD: 월 $79~$99, 일반 사용자
- * - PRO: 월 $199, 고급 사용자
+ * - STANDARD: 월 $29, 일반 사용자
+ * - PRO: 월 $89, 고급 사용자
  */
 export const SUBSCRIPTION_PLAN = {
   STANDARD: "STANDARD",
